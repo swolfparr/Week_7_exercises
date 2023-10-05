@@ -1,0 +1,51 @@
+---
+title: "Week_7_exercises_GIS"
+author: "J.Blondeau"
+date: "2023-10-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+------------------------------------------------------------------------
+
+## Data
+
+All the data is the shared OneDrive under Week_7 and include...
+
+2 shapefiles
+
+-   STEER_habitat_map
+-   Small_Sample_Domain
+-   sample_grid
+
+1 raster dataset
+
+-   STEER_Bathy
+
+------------------------------------------------------------------------
+
+1.  Import all the data into your project directory (3 shapefiles and 1 raster dataset).
+
+2.  The STEER bathymetry raster dataset is \~500MB.
+
+    -   Subset the bathymetry data using the Small_Sample_Domain shapefile. Check the sizes of the both the bathymetry datasets. <br> \*\* Geoprocessing rasters can be computer intensive, sub-setting them down to only the area of interest can help.
+
+<br>
+
+#### For the rest of the exercises you will only use the extracted bathymetry dataset
+
+3.  The Sample_grid shapefile is a 50x50 meter grid of polygons that fit nicely inside your extracted dataset from #2. Examine the attribute table of the Sample_grid and you will notice it has only minimal information including Grid_ID.
+
+    -   I would like for you to create a 'Sample_grid_Final' shapefile that includes the attributes...
+        1.  Habitat type for each 50x50m cell
+        2.  Mean depth for each cell.
+        3.  Centroid depth for each cell.
+
+    **Remember you often cannot complete everything in one step. You might need many steps (and interim shapefiles) to reach your final solution.**
+
+4.  Then add two new fields to your 'Sample_grid_final' shapefile. One for latitude and one for longitude then populate the fields (Decimal Degrees).
+
+5.  Finally, select all the Coral Reef and Colonized Hardbottom cells that are between 10-12 meters mean depth.
