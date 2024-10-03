@@ -15,6 +15,16 @@ This week is all about making plots and graphs in ggplot2.  The only datasets yo
 1) sttstj_fish_biomass
 2) taxonomic
 
+```{r}
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+
+fish_bio<- read_csv("data/sttstj_fish_biomass.csv")
+tax<-read_csv("data/taxonomic.csv")
+
+```
 
 Inspect the sttstj_fish_biomass dataset.  It is 3 years of biomass (kg/177m2) data for 9 fish species inside the VI national park (prot = 1) and outside the national park (prot = 0). 
 
@@ -23,14 +33,153 @@ In this instance, anytime you need to group by and summarize, you can just take 
 **put all your code in the .Rmd file inside a code chunk for each question.  Annotate what you are doing so that you can reference them later.
 
 1. Create a line graph of biomass over time for Red hind ("EPI GUTT") inside the national park.
+```{r}
+# Filter the data for Red Hind (EPI GUTT) inside the national park (protected_status == 1)
+red_hind <- fish_bio %>%
+  filter(SPECIES_CD == "EPI GUTT", protected_status == 1)
+
+
+
+# Create a line plot of biomass over time (YEAR)
+ggplot(red_hind, aes(x = YEAR, y = biomass)) +
+  geom_line(color = "blue") +  # Line for biomass over time
+  geom_point(size = 2, color = "blue") +  # Add points for each year
+  labs(title = "Biomass of Red Hind (EPI GUTT) Over Time in National Park",
+       x = "Year",
+       y = "Biomass") +
+  theme_minimal()
+```
+
+
 
 2. Create a point and line graph of biomass over time for Yellowtail Snapper ("OCY CHRY") outside the national park.
+```{r}
+# Filter the data for Yellowtail Snapper (OCY CHRY) outside the national park (protected_status == 0)
+yellowtail <- fish_bio %>%
+  filter(SPECIES_CD == "OCY CHRY", protected_status== 0)
+
+
+# Create a point and line plot of biomass over time (YEAR)
+ggplot(yellowtail, aes(x = YEAR, y = biomass)) +
+  geom_line(color = "red") +  # Line for biomass over time
+  geom_point(size = 3, color = "red") +  # Points for each year
+  labs(title = "Biomass of Yellowtail Snapper (OCY CHRY) Over Time Outside the National Park",
+       x = "Year",
+       y = "Biomass") +
+  theme_minimal()
+
+
+```
 
 3. Create a bar graph of biomass over time for each species grouped by protected_status.  Edit the the axis and legend titles to be more insightful.
     - biomass units
     - Scientific name instead of SPECIES_CD
     - 0 = Open, 1 = VI National Park
     
+```{r}
+
+# Convert protected_status to a factor with meaningful labels
+fish_bio <- fish_bio %>%
+  mutate(protected_status = factor(protected_status, 
+                                   levels = c(0, 1),
+                                   labels = c("Open", "VI National Park")))
+
+
+# Summarize biomass for each species and year
+parrotfish <- fish_bio %>%
+  filter(trophic=="parrotfish")%>%
+  group_by(YEAR, protected_status) %>%
+  summarise(total_biomass = sum(biomass))
+
+ggplot(data=parrotfish, aes(x=YEAR, y=total_biomass, fill=factor(protected_status)))+
+  geom_bar(stat= "identity", position= position_dodge(0.9), width=0.5)+
+  labs(title= "Mean Fish Biomass Inside and Outside the Park",
+       x="Year", 
+       y="Biomass(kg/177m2",
+       fill="protected status")+
+  scale_fill_manual(values=c("0"="red", "1"="blue"), 
+                    name=element_blank(),
+                    labels=c("outside", "Inside"))+
+  scale_x_continuous(breaks=c(2017,2019,2021,2023))+
+  scale_y_continuous(expand=c(0,0))+
+  scale_fill_discrete(labels=c("open", "VI National Park"))
+
+
+
+```
+
+    
 4. Create a bar graph of trophic-level mean biomass inside and outside VI national park for each species.
 
+
+```{r}
+
+trophic_summary <- fish_bio %>%
+  group_by(YEAR, trophic, protected_status) %>%
+  summarise(sum_biomass = sum(biomass, na.rm = TRUE))%>%
+  ungroup()%>%
+  group_by(trophic, protected_status)%>%
+  summarise(mean_biomass=mean(sum_biomass))
+
+
+# Create the bar plot
+ggplot(trophic_summary, aes(x = trophic, y = mean_biomass, fill = protected_status)) +
+  geom_bar(stat = "identity", position = "dodge") +  # Dodged bars for inside/outside the park
+  labs(title = "Mean Biomass by Trophic Level (Inside vs Outside VI National Park)",
+       x = "Trophic Level",
+       y = "Mean Biomass (kg)",  # Adjust units if necessary
+       fill = "Protection Status") +  # Legend title for protection status
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+
+```
+
+
+
+
+
+
+
 5. Create a point and line plot of 'grouper' biomass (+- SE) over time; inside and outside park together.
+
+
+
+```{r}
+# Filter the data for groupers only
+grouper_data <- fish_bio %>%
+  filter(trophic == "grouper")
+
+# Summarize biomass and SE by year and protection status
+grouper_summary <- grouper_data %>%
+  group_by(YEAR, protected_status) %>%
+  summarise(mean_biomass = mean(biomass, na.rm = TRUE),
+            se_biomass = mean(SE, na.rm = TRUE)) 
+
+ggplot(grouper_summary, aes(x = YEAR, y = mean_biomass, color = protected_status)) +
+  geom_line() +  # Line plot for biomass over time
+  geom_point(size = 3) +  # Points for each year
+  geom_errorbar(aes(ymin = mean_biomass - se_biomass, ymax = mean_biomass + se_biomass), width = 0.2) +  # Error bars for SE
+  labs(title = "Grouper Biomass Over Time (Inside vs Outside VI National Park)",
+       x = "Year",
+       y = "Mean Biomass (kg)",
+       color = "Protection Status") +  # Update legend title
+  theme_minimal()
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
